@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+# 同梱している mermaid を取得 / 更新する
+#
+#   bin/fetch-mermaid          最新の v11 系を取得
+#   bin/fetch-mermaid 11.17.2  バージョンを指定して取得
+#
+set -euo pipefail
+
+self="${BASH_SOURCE[0]}"
+while [ -L "$self" ]; do
+  d="$(cd -P "$(dirname "$self")" && pwd)"
+  self="$(readlink "$self")"
+  case "$self" in /*) ;; *) self="$d/$self" ;; esac
+done
+root="$(cd -P "$(dirname "$self")/.." && pwd)"
+
+spec="${1:-11}"
+dest="$root/vendor/mermaid.min.js"
+tmp="$dest.tmp.$$"
+url="https://cdn.jsdelivr.net/npm/mermaid@${spec}/dist/mermaid.min.js"
+
+trap 'rm -f "$tmp"' EXIT
+
+echo "取得中: $url"
+curl -fsSL "$url" -o "$tmp"
+
+# UMD ビルドであること（globalThis.mermaid を生やす）を確認してから差し替える
+if ! grep -q 'globalThis\["mermaid"\]' "$tmp"; then
+  echo "fetch-mermaid: 期待した UMD ビルドではありません。差し替えを中止しました。" >&2
+  exit 1
+fi
+
+mkdir -p "$root/vendor"
+mv "$tmp" "$dest"
+trap - EXIT
+
+ver="$(grep -o 'version:"[0-9][0-9.]*"' "$dest" | sed 's/version:"//; s/"//' | grep -v '^0\.0\.0$' | head -1)"
+echo "更新しました: vendor/mermaid.min.js (mermaid ${ver:-?}, $(du -h "$dest" | cut -f1))"

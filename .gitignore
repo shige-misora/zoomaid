@@ -1,0 +1,8 @@
+# macOS
+.DS_Store
+
+# ビューアが書き出した PNG（既定の保存先は Downloads だが念のため）
+/mermaid-*.png
+
+# 動作確認用の一時物
+.playwright-mcp/

@@ -1,0 +1,105 @@
+#!/usr/bin/env bash
+# mmv — ターミナルから Mermaid 図をビューアで開く
+#
+#   mmv                    クリップボードの中身を開く
+#   mmv docs/arch.md       ファイルを開く（```mermaid ブロックを自動抽出）
+#   cat x.mmd | mmv        標準入力を開く
+#   mmv -                  標準入力を明示
+#
+set -euo pipefail
+
+# symlink 経由で呼ばれても実体の場所を辿る
+self="${BASH_SOURCE[0]}"
+while [ -L "$self" ]; do
+  d="$(cd -P "$(dirname "$self")" && pwd)"
+  self="$(readlink "$self")"
+  case "$self" in /*) ;; *) self="$d/$self" ;; esac
+done
+HTML="$(cd -P "$(dirname "$self")/.." && pwd)/index.html"
+
+usage() {
+  sed -n '2,8p' "$0" | sed 's/^# \{0,1\}//'
+  exit "${1:-0}"
+}
+
+case "${1:-}" in
+  -h|--help) usage 0 ;;
+esac
+
+[ -f "$HTML" ] || { echo "mmv: ビューアが見つかりません: $HTML" >&2; exit 1; }
+
+read_clipboard() {
+  if command -v pbpaste >/dev/null 2>&1; then pbpaste
+  elif command -v wl-paste >/dev/null 2>&1; then wl-paste
+  elif command -v xclip >/dev/null 2>&1; then xclip -selection clipboard -o
+  else return 1
+  fi
+}
+blank() { [ -z "${1//[[:space:]]/}" ]; }
+
+# Mermaid の図に見えるか（```mermaid 囲み、または図種キーワードで始まる）
+looks_mermaid() {
+  printf '%s\n' "$1" | grep -Eqi '^[[:space:]]*(```|~~~)[[:space:]]*mermaid([[:space:]]|$)' && return 0
+  # 先頭の frontmatter（---〜---）、空行、%% コメント / %%{init}%% を飛ばして最初の実体行を見る
+  printf '%s\n' "$1" \
+    | awk 'NR==1 && /^[[:space:]]*---[[:space:]]*$/ { fm=1; next }
+           fm==1 { if (/^[[:space:]]*---[[:space:]]*$/) fm=0; next }
+           /^[[:space:]]*$/ { next }
+           /^[[:space:]]*%%/ { next }
+           { print; exit }' \
+    | grep -Eqi '^[[:space:]]*(graph|flowchart|sequenceDiagram|classDiagram(-v2)?|stateDiagram(-v2)?|erDiagram|journey|gantt|pie|gitGraph|mindmap|timeline|quadrantChart|requirementDiagram|C4(Context|Container|Component|Dynamic|Deployment)|sankey(-beta)?|xychart(-beta)?|block(-beta)?|architecture(-beta)?|packet(-beta)?|radar(-beta)?|treemap(-beta)?|kanban|zenuml|info)([[:space:]]|$)'
+}
+
+name=""
+from_clip=0
+if [ $# -gt 0 ] && [ "$1" != "-" ]; then
+  [ -f "$1" ] || { echo "mmv: ファイルがありません: $1" >&2; exit 1; }
+  src="$(cat "$1")"
+  name="$(basename "$1")"
+elif [ "${1:-}" = "-" ] || [ -p /dev/stdin ] || [ -f /dev/stdin ]; then
+  # パイプ（-p）かリダイレクト（-f）のときだけ標準入力を読む。
+  # `[ ! -t 0 ]` だと stdin が /dev/null の環境で空読みしてしまう。
+  src="$(cat)"
+  name="stdin"
+  if blank "$src" && [ "${1:-}" != "-" ]; then
+    src="$(read_clipboard || true)"
+    name=""
+    from_clip=1
+  fi
+else
+  src="$(read_clipboard)" || {
+    echo "mmv: クリップボードを読めません。ファイル名を渡すか、標準入力で流し込んでください。" >&2
+    exit 1
+  }
+  from_clip=1
+fi
+
+# クリップボード由来で Mermaid でなければ、図を渡さずビューアだけ開く
+if [ "$from_clip" = 1 ]; then
+  if blank "$src"; then
+    echo "mmv: クリップボードが空です。ビューアをそのまま開きます。" >&2
+    src=""
+  elif ! looks_mermaid "$src"; then
+    echo "mmv: クリップボードに Mermaid の図が見つかりません。ビューアをそのまま開きます。" >&2
+    src=""
+  fi
+elif blank "$src"; then
+  echo "mmv: 中身が空です。" >&2
+  exit 1
+fi
+
+url="file://${HTML}"
+if [ -n "$src" ]; then
+  # base64url（改行なし・パディングなし）
+  enc="$(printf '%s' "$src" | base64 | tr -d '\n' | tr '+/' '-_' | tr -d '=')"
+  url="${url}#c=${enc}"
+  [ -n "$name" ] && url="${url}&n=$(printf '%s' "$name" | sed 's/ /%20/g')"
+fi
+
+if command -v open >/dev/null 2>&1; then
+  open "$url"
+elif command -v xdg-open >/dev/null 2>&1; then
+  xdg-open "$url"
+else
+  echo "$url"
+fi
