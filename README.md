@@ -1,4 +1,4 @@
-# Mermaid View
+# Zoomaid
 
 クリップボードの Mermaid コードを貼り付けて、拡大・移動しながら快適に読むためのビューア。
 HTML 1枚 + mermaid 本体だけで動きます（インストール不要 / オフライン可 / macOS・Windows 共通）。
@@ -6,9 +6,10 @@ HTML 1枚 + mermaid 本体だけで動きます（インストール不要 / オ
 ## セットアップ
 
 ```sh
-git clone <このリポジトリ> ~/GitHub/mermaid-view
-cd ~/GitHub/mermaid-view
-ln -sf "$PWD/bin/mmv" ~/.local/bin/mmv   # PATH の通ったところへ
+git clone https://github.com/shige-misora/zoomaid.git ~/GitHub/zoomaid
+cd ~/GitHub/zoomaid
+ln -sf "$PWD/bin/zoomaid" ~/.local/bin/zoomaid   # PATH の通ったところへ
+ln -sf "$PWD/bin/zoomaid" ~/.local/bin/mmv       # 短い別名（任意）
 ```
 
 mermaid 本体は `vendor/` に同梱してあるので、ビルドも `npm install` も不要です。
@@ -16,23 +17,23 @@ mermaid 本体は `vendor/` に同梱してあるので、ビルドも `npm inst
 
 ## 使い方
 
-### ターミナルから（`mmv`）
+### ターミナルから（`zoomaid`）
 
 ```sh
-mmv                  # クリップボードの中身を開く
-mmv docs/arch.md     # ファイルを開く
-cat x.mmd | mmv      # 標準入力を開く
+zoomaid                  # クリップボードの中身を開く
+zoomaid docs/arch.md     # ファイルを開く
+cat x.mmd | zoomaid      # 標準入力を開く
 ```
 
-引数なしの `mmv` は、クリップボードが Mermaid でなければ（URL や普通の文章、空のとき）
+引数なしの `zoomaid` は、クリップボードが Mermaid でなければ（URL や普通の文章、空のとき）
 **図を渡さずビューアだけを開きます**。貼り付け直せばそのまま使えます。
 ファイルやパイプで明示的に渡したものは、Mermaid に見えなくてもそのまま渡します。
 
-ビューアを開いたまま `mmv` を撃ち直すと、そのタブの中身が差し替わります。
-図を直しては `mmv` で確認、という往復がタブを増やさずに回せます。
+ビューアを開いたまま `zoomaid` を撃ち直すと、そのタブの中身が差し替わります。
+図を直しては `zoomaid` で確認、という往復がタブを増やさずに回せます。
 
 ```sh
-mmv examples/sample.md   # 動作確認用のサンプル（図が2つ入っています）
+zoomaid examples/sample.md   # 動作確認用のサンプル（図が2つ入っています）
 ```
 
 ### ブラウザから
@@ -84,13 +85,13 @@ Dock / タスクバーに独立したウィンドウとして常駐します。
 
 ```
 index.html             ビューア本体（HTML / CSS / JS がこれ1枚に収まっています）
-bin/mmv                ターミナルから開くためのラッパ（macOS / Linux）
+bin/zoomaid            ターミナルから開くためのラッパ（macOS / Linux）
 bin/fetch-mermaid      同梱している mermaid の取得・更新
 vendor/mermaid.min.js  mermaid 本体（同梱。読み込めない場合は CDN に自動フォールバック）
 examples/sample.md     動作確認用のサンプル
 ```
 
-`mmv` は図のコードを base64url にして `index.html#c=…` の URL フラグメントとして渡すだけなので、
+`zoomaid` は図のコードを base64url にして `index.html#c=…` の URL フラグメントとして渡すだけなので、
 一時ファイルもローカルサーバも使いません。
 
 テーマは OS のダーク / ライト設定に自動追従し、手動で切り替えた場合はその選択を記憶します。

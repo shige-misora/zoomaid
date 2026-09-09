@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>Mermaid View</title>
+<title>Zoomaid</title>
 <style>
   :root{
     --bg:#ffffff; --panel:#f6f8fa; --panel2:#eaeef2; --border:#d0d7de;
@@ -142,7 +142,7 @@
 <body>
 
 <header class="bar">
-  <div class="brand">Mermaid View<span id="ver"></span></div>
+  <div class="brand">Zoomaid<span id="ver"></span></div>
 
   <div class="pager" id="pager" hidden>
     <button id="prevBlock" title="前の図">‹</button>
@@ -197,7 +197,7 @@
       <div class="hint">
         <kbd>⌘V</kbd> / <kbd>Ctrl+V</kbd> で貼り付け &nbsp;·&nbsp; .md / .mmd をドラッグ&ドロップ<br>
         ```mermaid で囲まれた Markdown をそのまま貼っても認識します<br>
-        ターミナルからは <kbd>mmv</kbd> コマンドでも開けます
+        ターミナルからは <kbd>zoomaid</kbd> コマンドでも開けます
       </div>
       <button id="btnRead">クリップボードから読み込む</button>
     </div>
@@ -235,7 +235,7 @@
   }
 
   /* ============ 永続設定 ============ */
-  var LS = 'mermaid-view/v1';
+  var LS = 'zoomaid/v1';
   var cfg = { theme:null, wheel:'pan', pngbg:'theme', pngscale:'3', code:'', editor:false, paneW:380 };
   try { Object.assign(cfg, JSON.parse(localStorage.getItem(LS) || '{}')); } catch(e){}
   var save = (function(){
@@ -561,7 +561,7 @@
     toastT = setTimeout(function(){ t.classList.remove('show'); }, 2200);
   }
 
-  /* ============ URL ハッシュ経由の受け渡し（mmv コマンド用） ============ */
+  /* ============ URL ハッシュ経由の受け渡し（zoomaid コマンド用） ============ */
   // file:///…/index.html#c=<base64url(UTF-8)>&n=<表示名>
   function decodeHash(){
     var h = location.hash || '';
@@ -584,7 +584,7 @@
     if (d.name) $('ver').textContent = d.name;
     return true;
   }
-  // 開きっぱなしのタブに mmv を撃ち直したときも差し替わるように
+  // 開きっぱなしのタブに zoomaid を撃ち直したときも差し替わるように
   window.addEventListener('hashchange', function(){ applyHash(true); });
 
   /* ============ 入力 ============ */

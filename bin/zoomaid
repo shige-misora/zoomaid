@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# mmv — ターミナルから Mermaid 図をビューアで開く
+# zoomaid — ターミナルから Mermaid 図をビューアで開く
 #
-#   mmv                    クリップボードの中身を開く
-#   mmv docs/arch.md       ファイルを開く（```mermaid ブロックを自動抽出）
-#   cat x.mmd | mmv        標準入力を開く
-#   mmv -                  標準入力を明示
+#   zoomaid                    クリップボードの中身を開く
+#   zoomaid docs/arch.md       ファイルを開く（```mermaid ブロックを自動抽出）
+#   cat x.mmd | zoomaid        標準入力を開く
+#   zoomaid -                  標準入力を明示
 #
 set -euo pipefail
 
@@ -26,7 +26,7 @@ case "${1:-}" in
   -h|--help) usage 0 ;;
 esac
 
-[ -f "$HTML" ] || { echo "mmv: ビューアが見つかりません: $HTML" >&2; exit 1; }
+[ -f "$HTML" ] || { echo "zoomaid: ビューアが見つかりません: $HTML" >&2; exit 1; }
 
 read_clipboard() {
   if command -v pbpaste >/dev/null 2>&1; then pbpaste
@@ -53,7 +53,7 @@ looks_mermaid() {
 name=""
 from_clip=0
 if [ $# -gt 0 ] && [ "$1" != "-" ]; then
-  [ -f "$1" ] || { echo "mmv: ファイルがありません: $1" >&2; exit 1; }
+  [ -f "$1" ] || { echo "zoomaid: ファイルがありません: $1" >&2; exit 1; }
   src="$(cat "$1")"
   name="$(basename "$1")"
 elif [ "${1:-}" = "-" ] || [ -p /dev/stdin ] || [ -f /dev/stdin ]; then
@@ -68,7 +68,7 @@ elif [ "${1:-}" = "-" ] || [ -p /dev/stdin ] || [ -f /dev/stdin ]; then
   fi
 else
   src="$(read_clipboard)" || {
-    echo "mmv: クリップボードを読めません。ファイル名を渡すか、標準入力で流し込んでください。" >&2
+    echo "zoomaid: クリップボードを読めません。ファイル名を渡すか、標準入力で流し込んでください。" >&2
     exit 1
   }
   from_clip=1
@@ -77,14 +77,14 @@ fi
 # クリップボード由来で Mermaid でなければ、図を渡さずビューアだけ開く
 if [ "$from_clip" = 1 ]; then
   if blank "$src"; then
-    echo "mmv: クリップボードが空です。ビューアをそのまま開きます。" >&2
+    echo "zoomaid: クリップボードが空です。ビューアをそのまま開きます。" >&2
     src=""
   elif ! looks_mermaid "$src"; then
-    echo "mmv: クリップボードに Mermaid の図が見つかりません。ビューアをそのまま開きます。" >&2
+    echo "zoomaid: クリップボードに Mermaid の図が見つかりません。ビューアをそのまま開きます。" >&2
     src=""
   fi
 elif blank "$src"; then
-  echo "mmv: 中身が空です。" >&2
+  echo "zoomaid: 中身が空です。" >&2
   exit 1
 fi
 

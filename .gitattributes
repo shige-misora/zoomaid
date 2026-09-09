@@ -3,4 +3,4 @@ vendor/mermaid.min.js -diff linguist-vendored
 
 # 改行を固定（bin/ のスクリプトが CRLF になると動かない）
 *.sh    text eol=lf
-bin/mmv text eol=lf
+bin/zoomaid text eol=lf
